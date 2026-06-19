@@ -1,0 +1,38 @@
+{
+  "main": {
+    "id": "main",
+    "type": "split",
+    "children": [
+      {
+        "id": "left",
+        "type": "leaf",
+        "state": {
+          "type": "markdown",
+          "state": {
+            "file": "Risk Profiles.md",
+            "mode": "preview"
+          }
+        }
+      }
+    ]
+  },
+  "left": {
+    "id": "left-ribbon",
+    "type": "ribbon",
+    "collapsed": false
+  },
+  "right": {
+    "id": "right-sidebar",
+    "type": "split",
+    "collapsed": true,
+    "children": []
+  },
+  "active": "left",
+  "lastOpenFiles": [
+    "Risk Profiles.md",
+    "Equity.md",
+    "Mutual Funds.md",
+    "Bonds.md",
+    "Fixed Deposit.md"
+  ]
+}
