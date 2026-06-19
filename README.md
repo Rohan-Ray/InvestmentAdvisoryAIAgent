@@ -58,12 +58,15 @@ InvestmentAdvisoryAIAgent/
 │   └── test_rag.py              # 5 RAG engine tests
 ├── observability/
 │   ├── otel_config.py           # OpenTelemetry traces + metrics
+│   ├── metrics_exporter.py      # Prometheus metrics exporter (:8502)
+│   ├── prometheus.yml           # Prometheus scrape config
 │   └── grafana_dashboard.json   # Import-ready Grafana dashboard
 ├── load-testing/
 │   └── k6_script.js             # K6 load test (10 VUs, 30s)
 ├── knowledge-vault/
 │   ├── investment_products.md   # Obsidian-ready knowledge base
-│   └── graph_nodes.json         # Graphify relational nodes + edges
+│   ├── graph_nodes.json         # Graphify relational nodes + edges
+│   └── vault_viewer.py          # Web viewer for vault (:8503)
 ├── docs/
 │   └── triage-reports/          # P3-Triage-Agent review reports
 └── .claude/
@@ -83,17 +86,164 @@ InvestmentAdvisoryAIAgent/
 
 ```bash
 pip install -r requirements.txt
+pip install flask                   # required for Knowledge Vault viewer
 ```
 
-### 2. Run the app
+---
+
+## Running Each Service
+
+### Streamlit App (Investment Advisor UI)
 
 ```bash
 streamlit run src/frontend/app.py
 ```
 
-Open [http://localhost:8501](http://localhost:8501) in your browser.
+| URL | Address |
+|-----|---------|
+| Local | http://localhost:8501 |
+| Network | http://<your-ip>:8501 |
 
-### 3. Run tests
+---
+
+### Knowledge Vault (Obsidian-style Graph Viewer)
+
+A web-based viewer for the investment knowledge base with Markdown rendering and an interactive concept graph.
+
+```bash
+python3 knowledge-vault/vault_viewer.py
+```
+
+Opens at **http://localhost:8503**
+
+- **Document tab** — browse and read all investment product notes
+- **Graph View tab** — interactive node graph showing relationships between investment concepts, risk levels, goals, and system components (19 nodes, 27 edges)
+
+> **Obsidian desktop:** Alternatively open `knowledge-vault/` as a vault in the Obsidian app for full backlinks, graph view, and search.
+
+---
+
+### Observability Stack
+
+#### Step 1 — Start the Prometheus metrics exporter
+
+Exposes live app metrics (recommendations, latency, MCP calls, active sessions):
+
+```bash
+python3 observability/metrics_exporter.py
+```
+
+Metrics endpoint: **http://localhost:8502/metrics**
+
+#### Step 2 — Start Prometheus
+
+Scrapes the metrics exporter every 5 seconds:
+
+```bash
+prometheus --config.file=observability/prometheus.yml \
+  --storage.tsdb.path=/tmp/prometheus-data \
+  --web.listen-address=0.0.0.0:9091
+```
+
+Prometheus UI: **http://localhost:9091**
+
+#### Step 3 — Start Grafana
+
+Download Grafana OSS (one-time):
+
+```bash
+curl -sL https://dl.grafana.com/oss/release/grafana-11.4.0.linux-amd64.tar.gz \
+  -o /tmp/grafana.tar.gz
+tar -xzf /tmp/grafana.tar.gz -C /tmp
+```
+
+Start Grafana:
+
+```bash
+GF_SERVER_HTTP_PORT=3000 \
+GF_SECURITY_ADMIN_USER=admin \
+GF_SECURITY_ADMIN_PASSWORD=admin \
+GF_AUTH_ANONYMOUS_ENABLED=true \
+/tmp/grafana-v11.4.0/bin/grafana server \
+  --homepath /tmp/grafana-v11.4.0 \
+  > /tmp/grafana.log 2>&1 &
+```
+
+Grafana: **http://localhost:3000** — login: `admin` / `admin`
+
+#### Step 4 — Add datasource and import dashboard
+
+```bash
+# Add Prometheus datasource
+curl -X POST http://admin:admin@localhost:3000/api/datasources \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Prometheus","type":"prometheus","url":"http://localhost:9091","access":"proxy","isDefault":true}'
+
+# Import the pre-built dashboard via Grafana UI:
+# Dashboards → Import → Upload observability/grafana_dashboard.json
+```
+
+Pre-built dashboard: **http://localhost:3000/d/invest-advisory-v1**
+
+Dashboard panels:
+- Total recommendations counter
+- Recommendation latency p95 (timeseries)
+- Breakdown by risk profile (pie chart)
+- Breakdown by goal horizon (pie chart)
+- MCP tool call rate
+- Application logs
+
+---
+
+### MCP Server
+
+Exposes the rule engine, portfolio allocator, risk profiler, and RAG retriever as Claude-compatible tools over stdio:
+
+```bash
+python3 mcp/server.py
+```
+
+Register with Claude Code by adding to your MCP config:
+
+```bash
+cat mcp/claude_mcp_config.json
+```
+
+---
+
+### Run All Services at Once
+
+```bash
+# Terminal 1 — Streamlit App
+streamlit run src/frontend/app.py
+
+# Terminal 2 — Knowledge Vault Viewer
+python3 knowledge-vault/vault_viewer.py
+
+# Terminal 3 — Metrics Exporter
+python3 observability/metrics_exporter.py
+
+# Terminal 4 — Prometheus
+prometheus --config.file=observability/prometheus.yml \
+  --storage.tsdb.path=/tmp/prometheus-data \
+  --web.listen-address=0.0.0.0:9091
+
+# Terminal 5 — Grafana (after downloading, see above)
+GF_SERVER_HTTP_PORT=3000 GF_SECURITY_ADMIN_USER=admin GF_SECURITY_ADMIN_PASSWORD=admin \
+/tmp/grafana-v11.4.0/bin/grafana server --homepath /tmp/grafana-v11.4.0
+```
+
+| Service | URL | Purpose |
+|---------|-----|---------|
+| Streamlit App | http://localhost:8501 | Main investment advisor UI |
+| Knowledge Vault | http://localhost:8503 | Markdown notes + graph view |
+| Grafana Dashboard | http://localhost:3000/d/invest-advisory-v1 | Live metrics dashboard |
+| Prometheus | http://localhost:9091 | Metrics store + query UI |
+| Metrics Exporter | http://localhost:8502/metrics | Raw Prometheus metrics |
+
+---
+
+### Run Tests
 
 ```bash
 python3 -m pytest tests/ -v
