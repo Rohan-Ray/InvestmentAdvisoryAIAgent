@@ -1,0 +1,88 @@
+# Step 9: Reusable Setup and Configuration
+# Scalable AI product configuration template.
+
+app:
+  name: InvestmentAdvisoryAIAgent
+  version: "1.0.0"
+  env: ${INVESTMENT_APP_ENV:-development}
+
+# ── Python environment ────────────────────────────────────────────────────────
+python:
+  version: ">=3.11"
+  package_manager: pip
+  requirements_file: requirements.txt
+  dev_requirements_file: requirements-dev.txt
+
+# ── Streamlit configuration ───────────────────────────────────────────────────
+streamlit:
+  entry_point: src/frontend/app.py
+  port: 8501
+  base_url_path: ""
+  server_headless: true
+  browser_gather_usage_stats: false
+  theme:
+    primaryColor: "#1a3c6e"
+    backgroundColor: "#f5f7fa"
+    secondaryBackgroundColor: "#e8edf5"
+    textColor: "#1a1a2e"
+    font: "sans serif"
+
+# ── Backend configuration ─────────────────────────────────────────────────────
+backend:
+  module: src.backend.advisor
+  rule_engine_version: "1.0.0"
+  age_conservative_threshold: 55
+  low_savings_rate: 0.20
+  investment_categories:
+    - Fixed Deposit
+    - Recurring Deposit
+    - Mutual Funds
+    - Bonds
+    - Equity
+
+# ── RAG configuration ─────────────────────────────────────────────────────────
+rag:
+  engine: chromadb
+  chunk_size: ${RAG_CHUNK_SIZE:-512}
+  chunk_overlap: ${RAG_OVERLAP:-64}
+  embedding_model: sentence-transformers/all-MiniLM-L6-v2
+  collection_name: investment_knowledge
+  persist_directory: knowledge-vault/chroma_db
+  top_k: 3
+
+# ── MCP server ────────────────────────────────────────────────────────────────
+mcp:
+  server_port: ${MCP_SERVER_PORT:-8765}
+  server_host: "0.0.0.0"
+  transport: stdio
+  tools:
+    - investment_advisory
+    - portfolio_allocator
+    - risk_profiler
+
+# ── Observability ─────────────────────────────────────────────────────────────
+observability:
+  service_name: ${OTEL_SERVICE_NAME:-investment-advisory-agent}
+  otlp_endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://localhost:4317}
+  log_level: ${LOG_LEVEL:-INFO}
+  trace_sample_rate: 1.0            # 100% in dev; reduce in prod
+  metrics_export_interval_ms: 5000
+
+# ── Load testing ─────────────────────────────────────────────────────────────
+load_testing:
+  tool: k6
+  script: load-testing/k6_script.js
+  vus: 10                            # virtual users
+  duration: "30s"
+  thresholds:
+    http_req_duration_p95_ms: 2000
+    http_req_failed_rate: 0.01
+
+# ── Scalability presets ───────────────────────────────────────────────────────
+scalability:
+  # Override these for production
+  production:
+    streamlit_workers: 4
+    rag_cache_ttl_seconds: 3600
+    mcp_max_connections: 50
+    otel_sample_rate: 0.1

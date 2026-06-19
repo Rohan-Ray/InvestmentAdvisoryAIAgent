@@ -1,0 +1,45 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[HOOK] PreToolUse:Bash - $(date +%Y-%m-%dT%H:%M:%S)' >> /home/labuser/InvestmentAdvisoryAIAgent/observability/hooks.log"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[HOOK] PostToolUse:FileWrite - $(date +%Y-%m-%dT%H:%M:%S)' >> /home/labuser/InvestmentAdvisoryAIAgent/observability/hooks.log"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[HOOK] AgentStop - $(date +%Y-%m-%dT%H:%M:%S)' >> /home/labuser/InvestmentAdvisoryAIAgent/observability/hooks.log"
+          }
+        ]
+      }
+    ]
+  },
+  "env": {
+    "INVESTMENT_APP_ENV": "development",
+    "OTEL_SERVICE_NAME": "investment-advisory-agent",
+    "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4317",
+    "LOG_LEVEL": "INFO",
+    "RAG_CHUNK_SIZE": "512",
+    "RAG_OVERLAP": "64",
+    "MCP_SERVER_PORT": "8765"
+  }
+}

@@ -1,0 +1,66 @@
+# Sub-Agent Isolation Context Configuration
+# Step 6: Each agent has bounded read/write scopes and memory budgets.
+
+agents:
+  frontend-agent:
+    read_paths:
+      - src/frontend/**
+      - src/backend/advisor.py        # interface only — no writes
+      - config/
+      - knowledge-vault/
+    write_paths:
+      - src/frontend/**
+    forbidden_paths:
+      - mcp/
+      - observability/
+      - .claude/
+    memory_budget_pct: 12
+    active_prompt_window: 10
+    summary_trigger_pct: 80
+    delegation:
+      backend_change: backend-agent
+      review_needed: p3-triage-agent
+      security_concern: p3-triage-agent
+
+  backend-agent:
+    read_paths:
+      - src/backend/**
+      - mcp/**
+      - config/
+      - tests/
+      - knowledge-vault/
+    write_paths:
+      - src/backend/**
+      - mcp/**
+      - tests/**
+    forbidden_paths:
+      - src/frontend/
+      - observability/
+      - .claude/
+    memory_budget_pct: 12
+    active_prompt_window: 10
+    summary_trigger_pct: 80
+    delegation:
+      ui_change: frontend-agent
+      observability: p3-triage-agent
+      security_concern: p3-triage-agent
+
+  p3-triage-agent:
+    read_paths:
+      - src/**
+      - mcp/**
+      - tests/**
+      - config/
+      - observability/
+      - docs/**
+    write_paths:
+      - docs/triage-reports/**
+    forbidden_paths:
+      - .claude/
+      - knowledge-vault/private/
+    memory_budget_pct: 8
+    active_prompt_window: 5
+    summary_trigger_pct: 80
+    escalation:
+      security_blocker: human_reviewer
+      critical_bug: human_reviewer

@@ -1,0 +1,96 @@
+{
+  "__comment": "Step 15: Grafana dashboard for Investment Advisory AI Agent. Import via Grafana UI → Dashboards → Import.",
+  "title": "Investment Advisory AI Agent",
+  "uid": "invest-advisory-v1",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "time": { "from": "now-1h", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Total Recommendations",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
+      "targets": [
+        {
+          "expr": "sum(investment_recommendations_total)",
+          "legendFormat": "Recommendations"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Recommendation Latency (p95)",
+      "gridPos": { "x": 6, "y": 0, "w": 10, "h": 4 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, rate(investment_recommendation_latency_ms_bucket[1m]))",
+          "legendFormat": "p95 latency (ms)"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "piechart",
+      "title": "Recommendations by Risk Profile",
+      "gridPos": { "x": 0, "y": 4, "w": 8, "h": 6 },
+      "targets": [
+        {
+          "expr": "sum by (risk) (investment_recommendations_total)",
+          "legendFormat": "{{risk}}"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "piechart",
+      "title": "Recommendations by Goal Horizon",
+      "gridPos": { "x": 8, "y": 4, "w": 8, "h": 6 },
+      "targets": [
+        {
+          "expr": "sum by (goal) (investment_recommendations_total)",
+          "legendFormat": "{{goal}}"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "MCP Tool Call Rate",
+      "gridPos": { "x": 0, "y": 10, "w": 16, "h": 4 },
+      "targets": [
+        {
+          "expr": "rate(mcp_tool_calls_total[1m])",
+          "legendFormat": "{{tool}}"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "logs",
+      "title": "Application Logs",
+      "gridPos": { "x": 0, "y": 14, "w": 16, "h": 6 },
+      "targets": [
+        {
+          "expr": "{service_name=\"investment-advisory-agent\"}",
+          "legendFormat": ""
+        }
+      ]
+    }
+  ],
+  "datasource": {
+    "type": "prometheus",
+    "uid": "${datasource}"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "type": "datasource",
+        "query": "prometheus"
+      }
+    ]
+  }
+}

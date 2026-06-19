@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Investment Knowledge Graph</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0f1117; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+
+    #canvas { width: 100vw; height: 100vh; }
+
+    .link { stroke-opacity: 0.6; }
+    .link-label { font-size: 10px; fill: #888; pointer-events: none; }
+
+    .node circle {
+      stroke: #1a1a2e;
+      stroke-width: 2px;
+      cursor: grab;
+      transition: filter 0.2s;
+    }
+    .node circle:hover { filter: brightness(1.4); }
+    .node circle:active { cursor: grabbing; }
+    .node text {
+      font-size: 11px;
+      fill: #e0e0e0;
+      pointer-events: none;
+      text-anchor: middle;
+      dominant-baseline: central;
+    }
+
+    #legend {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-size: 13px;
+      backdrop-filter: blur(6px);
+    }
+    #legend h3 { font-size: 13px; color: #aaa; margin-bottom: 10px; letter-spacing: 0.05em; text-transform: uppercase; }
+    .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .legend-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+
+    #tooltip {
+      position: fixed;
+      background: rgba(20,20,35,0.95);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+      pointer-events: none;
+      display: none;
+      max-width: 220px;
+      line-height: 1.7;
+    }
+    #tooltip strong { color: #7eb8f7; font-size: 13px; }
+
+    #controls {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      display: flex;
+      gap: 8px;
+    }
+    #controls button {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #ccc;
+      padding: 7px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background 0.2s;
+    }
+    #controls button:hover { background: rgba(255,255,255,0.16); }
+
+    #info {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      font-size: 11px;
+      color: #555;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+<svg id="canvas"></svg>
+
+<div id="legend">
+  <h3>Node Types</h3>
+  <div class="legend-item"><div class="legend-dot" style="background:#4fa3e0"></div> Product</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#e07c4f"></div> Risk Level</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#4fbe8a"></div> Goal</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#9b59b6"></div> Component</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#e8c53a"></div> Regulator</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#e05a7a"></div> Compliance</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#7ecece"></div> Entity</div>
+</div>
+
+<div id="tooltip"></div>
+
+<div id="controls">
+  <button onclick="resetZoom()">Reset View</button>
+  <button onclick="toggleLabels()">Toggle Edge Labels</button>
+</div>
+
+<div id="info">Scroll to zoom · Drag nodes · Hover for details</div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+const graphData = {
+  "nodes": [
+    { "id": "fixed_deposit",    "label": "Fixed Deposit",       "type": "product",    "risk": "low",    "tags": ["safe","guaranteed","bank"] },
+    { "id": "recurring_deposit","label": "Recurring Deposit",   "type": "product",    "risk": "low",    "tags": ["safe","monthly","habit"] },
+    { "id": "bonds",            "label": "Bonds",               "type": "product",    "risk": "medium", "tags": ["debt","coupon","government","corporate"] },
+    { "id": "mutual_funds",     "label": "Mutual Funds",        "type": "product",    "risk": "medium", "tags": ["diversified","AMC","SIP","SEBI"] },
+    { "id": "equity",           "label": "Equity",              "type": "product",    "risk": "high",   "tags": ["shares","NSE","BSE","DEMAT","growth"] },
+    { "id": "risk_low",         "label": "Low Risk",            "type": "risk_level", "risk": "low",    "tags": [] },
+    { "id": "risk_medium",      "label": "Medium Risk",         "type": "risk_level", "risk": "medium", "tags": [] },
+    { "id": "risk_high",        "label": "High Risk",           "type": "risk_level", "risk": "high",   "tags": [] },
+    { "id": "short_term",       "label": "Short-term Goal",     "type": "goal",       "horizon": "< 3 years", "tags": [] },
+    { "id": "medium_term",      "label": "Medium-term Goal",    "type": "goal",       "horizon": "3-7 years", "tags": [] },
+    { "id": "long_term",        "label": "Long-term Goal",      "type": "goal",       "horizon": "7+ years",  "tags": [] },
+    { "id": "sebi",             "label": "SEBI",                "type": "regulator",  "tags": ["regulation","india"] },
+    { "id": "disclaimer",       "label": "Disclaimer",          "type": "compliance", "tags": ["educational","not_advice"] },
+    { "id": "user_profile",     "label": "User Profile",        "type": "entity",     "tags": ["age","income","savings","risk","goal"] },
+    { "id": "rule_engine",      "label": "Rule Engine",         "type": "component",  "tags": ["backend","python","allocation"] },
+    { "id": "rag_engine",       "label": "RAG Engine",          "type": "component",  "tags": ["retrieval","chromadb","embeddings"] },
+    { "id": "mcp_server",       "label": "MCP Server",          "type": "component",  "tags": ["mcp","tools","stdio"] },
+    { "id": "streamlit_ui",     "label": "Streamlit UI",        "type": "component",  "tags": ["frontend","chart","form"] }
+  ],
+  "edges": [
+    { "source": "fixed_deposit",     "target": "risk_low",          "relation": "has_risk" },
+    { "source": "recurring_deposit", "target": "risk_low",          "relation": "has_risk" },
+    { "source": "bonds",             "target": "risk_medium",       "relation": "has_risk" },
+    { "source": "mutual_funds",      "target": "risk_medium",       "relation": "has_risk" },
+    { "source": "equity",            "target": "risk_high",         "relation": "has_risk" },
+    { "source": "fixed_deposit",     "target": "short_term",        "relation": "suits_goal" },
+    { "source": "fixed_deposit",     "target": "medium_term",       "relation": "suits_goal" },
+    { "source": "bonds",             "target": "medium_term",       "relation": "suits_goal" },
+    { "source": "mutual_funds",      "target": "long_term",         "relation": "suits_goal" },
+    { "source": "equity",            "target": "long_term",         "relation": "suits_goal" },
+    { "source": "mutual_funds",      "target": "sebi",              "relation": "regulated_by" },
+    { "source": "equity",            "target": "sebi",              "relation": "regulated_by" },
+    { "source": "user_profile",      "target": "rule_engine",       "relation": "input_to" },
+    { "source": "rule_engine",       "target": "fixed_deposit",     "relation": "recommends" },
+    { "source": "rule_engine",       "target": "recurring_deposit", "relation": "recommends" },
+    { "source": "rule_engine",       "target": "bonds",             "relation": "recommends" },
+    { "source": "rule_engine",       "target": "mutual_funds",      "relation": "recommends" },
+    { "source": "rule_engine",       "target": "equity",            "relation": "recommends" },
+    { "source": "rag_engine",        "target": "fixed_deposit",     "relation": "retrieves_about" },
+    { "source": "rag_engine",        "target": "mutual_funds",      "relation": "retrieves_about" },
+    { "source": "mcp_server",        "target": "rule_engine",       "relation": "exposes" },
+    { "source": "mcp_server",        "target": "rag_engine",        "relation": "exposes" },
+    { "source": "streamlit_ui",      "target": "user_profile",      "relation": "collects" },
+    { "source": "streamlit_ui",      "target": "rule_engine",       "relation": "calls" },
+    { "source": "disclaimer",        "target": "streamlit_ui",      "relation": "displayed_in" },
+    { "source": "disclaimer",        "target": "sebi",              "relation": "references" }
+  ]
+};
+
+const COLOR = {
+  product:    "#4fa3e0",
+  risk_level: "#e07c4f",
+  goal:       "#4fbe8a",
+  component:  "#9b59b6",
+  regulator:  "#e8c53a",
+  compliance: "#e05a7a",
+  entity:     "#7ecece"
+};
+
+const EDGE_COLOR = {
+  has_risk:        "#e07c4f",
+  suits_goal:      "#4fbe8a",
+  regulated_by:    "#e8c53a",
+  recommends:      "#4fa3e0",
+  retrieves_about: "#9b59b6",
+  exposes:         "#aaa",
+  input_to:        "#7ecece",
+  collects:        "#7ecece",
+  calls:           "#ccc",
+  displayed_in:    "#e05a7a",
+  references:      "#e8c53a"
+};
+
+const RADIUS = { product: 22, risk_level: 18, goal: 20, component: 24, regulator: 20, compliance: 18, entity: 20 };
+
+const svg = d3.select("#canvas");
+const width = window.innerWidth;
+const height = window.innerHeight;
+svg.attr("viewBox", `0 0 ${width} ${height}`);
+
+const g = svg.append("g");
+
+const zoom = d3.zoom().scaleExtent([0.2, 4]).on("zoom", e => g.attr("transform", e.transform));
+svg.call(zoom);
+
+// Arrow markers per relation type
+const defs = svg.append("defs");
+Object.entries(EDGE_COLOR).forEach(([rel, color]) => {
+  defs.append("marker")
+    .attr("id", `arrow-${rel}`)
+    .attr("viewBox", "0 -5 10 10")
+    .attr("refX", 10).attr("refY", 0)
+    .attr("markerWidth", 6).attr("markerHeight", 6)
+    .attr("orient", "auto")
+    .append("path")
+    .attr("d", "M0,-5L10,0L0,5")
+    .attr("fill", color);
+});
+
+const simulation = d3.forceSimulation(graphData.nodes)
+  .force("link", d3.forceLink(graphData.edges).id(d => d.id).distance(120).strength(0.6))
+  .force("charge", d3.forceManyBody().strength(-400))
+  .force("center", d3.forceCenter(width / 2, height / 2))
+  .force("collision", d3.forceCollide().radius(d => RADIUS[d.type] + 10));
+
+// Links
+const link = g.append("g").selectAll("line")
+  .data(graphData.edges).join("line")
+  .attr("class", "link")
+  .attr("stroke", d => EDGE_COLOR[d.relation] || "#666")
+  .attr("stroke-width", 1.5)
+  .attr("marker-end", d => `url(#arrow-${d.relation})`);
+
+// Edge labels group
+let showEdgeLabels = true;
+const linkLabelGroup = g.append("g").attr("id", "edge-labels");
+const linkLabel = linkLabelGroup.selectAll("text")
+  .data(graphData.edges).join("text")
+  .attr("class", "link-label")
+  .text(d => d.relation.replace(/_/g, " "));
+
+// Nodes
+const node = g.append("g").selectAll("g")
+  .data(graphData.nodes).join("g")
+  .attr("class", "node")
+  .call(d3.drag()
+    .on("start", (e, d) => { if (!e.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+    .on("drag",  (e, d) => { d.fx = e.x; d.fy = e.y; })
+    .on("end",   (e, d) => { if (!e.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; })
+  );
+
+node.append("circle")
+  .attr("r", d => RADIUS[d.type] || 20)
+  .attr("fill", d => COLOR[d.type] || "#888");
+
+node.append("text")
+  .text(d => d.label)
+  .attr("y", d => RADIUS[d.type] + 14)
+  .style("font-size", "11px")
+  .style("fill", "#ccc")
+  .style("text-anchor", "middle");
+
+// Tooltip
+const tooltip = document.getElementById("tooltip");
+
+node.on("mouseover", (e, d) => {
+  const extra = d.risk ? `<br/>Risk: <b>${d.risk}</b>` : "";
+  const horizon = d.horizon ? `<br/>Horizon: <b>${d.horizon}</b>` : "";
+  const tags = d.tags?.length ? `<br/>Tags: ${d.tags.join(", ")}` : "";
+  tooltip.innerHTML = `<strong>${d.label}</strong><br/>Type: ${d.type}${extra}${horizon}${tags}`;
+  tooltip.style.display = "block";
+}).on("mousemove", e => {
+  tooltip.style.left = (e.clientX + 14) + "px";
+  tooltip.style.top  = (e.clientY - 10) + "px";
+}).on("mouseleave", () => {
+  tooltip.style.display = "none";
+});
+
+// Tick
+simulation.on("tick", () => {
+  link
+    .attr("x1", d => d.source.x)
+    .attr("y1", d => d.source.y)
+    .attr("x2", d => {
+      const dx = d.target.x - d.source.x, dy = d.target.y - d.source.y;
+      const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+      return d.target.x - (dx / dist) * (RADIUS[d.target.type] + 8);
+    })
+    .attr("y2", d => {
+      const dx = d.target.x - d.source.x, dy = d.target.y - d.source.y;
+      const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+      return d.target.y - (dy / dist) * (RADIUS[d.target.type] + 8);
+    });
+
+  linkLabel
+    .attr("x", d => (d.source.x + d.target.x) / 2)
+    .attr("y", d => (d.source.y + d.target.y) / 2);
+
+  node.attr("transform", d => `translate(${d.x},${d.y})`);
+});
+
+function resetZoom() {
+  svg.transition().duration(500).call(zoom.transform, d3.zoomIdentity.translate(0, 0).scale(1));
+}
+
+function toggleLabels() {
+  showEdgeLabels = !showEdgeLabels;
+  linkLabelGroup.style("display", showEdgeLabels ? "block" : "none");
+}
+
+window.addEventListener("resize", () => {
+  const w = window.innerWidth, h = window.innerHeight;
+  svg.attr("viewBox", `0 0 ${w} ${h}`);
+  simulation.force("center", d3.forceCenter(w / 2, h / 2)).alpha(0.3).restart();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "investment-advisory": {
+      "command": "python3",
+      "args": ["mcp/server.py"],
+      "env": {
+        "INVESTMENT_APP_ENV": "development",
+        "LOG_LEVEL": "INFO"
+      },
+      "description": "Custom MCP server for Investment Advisory AI Agent. Exposes rule engine, portfolio allocator, risk profiler, and RAG retriever as tools."
+    }
+  }
+}

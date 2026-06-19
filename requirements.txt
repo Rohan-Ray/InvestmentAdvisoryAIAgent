@@ -1,0 +1,12 @@
+# Core application dependencies
+streamlit>=1.35.0
+plotly>=5.22.0
+
+# RAG engine (optional — falls back to keyword if absent)
+chromadb>=0.5.0
+sentence-transformers>=3.0.0
+
+# Observability (optional — no-op if absent)
+opentelemetry-api>=1.25.0
+opentelemetry-sdk>=1.25.0
+opentelemetry-exporter-otlp-proto-grpc>=1.25.0

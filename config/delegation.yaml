@@ -1,0 +1,79 @@
+# Step 7: Agent Delegation Configuration
+# Defines how tasks are routed between sub-agents.
+
+orchestration:
+  primary_orchestrator: claude-code   # main Claude Code session
+  subagents:
+    - frontend-agent
+    - backend-agent
+    - p3-triage-agent
+
+delegation_rules:
+  # Task type → responsible agent
+  - pattern: "*.py changes in src/frontend/**"
+    agent: frontend-agent
+    fallback: claude-code
+
+  - pattern: "*.py changes in src/backend/**"
+    agent: backend-agent
+    fallback: claude-code
+
+  - pattern: "rule logic|allocation|advisor"
+    agent: backend-agent
+
+  - pattern: "chart|plot|UI|layout|form|streamlit"
+    agent: frontend-agent
+
+  - pattern: "security|review|triage|report|coverage"
+    agent: p3-triage-agent
+
+  - pattern: "MCP|server|tool|plugin"
+    agent: backend-agent
+
+  - pattern: "RAG|retrieval|knowledge|vault"
+    agent: backend-agent
+
+  - pattern: "observability|telemetry|trace|metric|log"
+    agent: p3-triage-agent
+
+context_trimming:
+  # Step 8: Memory allocation across the context window corpus
+  total_context_budget: 1.0           # 100%
+  orchestrator_reserved: 0.40         # 40% for main session
+  subagent_pool: 0.36                 # 36% shared across sub-agents
+  overhead_buffer: 0.24               # 24% for tool results, hooks, RAG
+
+  per_agent:
+    frontend-agent:
+      max_pct: 0.12                   # 12% of corpus
+      active_prompts: 10              # latest N prompts in window
+      history_summary_max_words: 150
+
+    backend-agent:
+      max_pct: 0.12
+      active_prompts: 10
+      history_summary_max_words: 150
+
+    p3-triage-agent:
+      max_pct: 0.08
+      active_prompts: 8
+      history_summary_max_words: 100
+
+  trim_strategy:
+    trigger: "agent context > 80% of budget"
+    action: "summarise_and_trim"
+    summary_tag_format: "[{AGENT}-SUMMARY-v{N}]"
+    keep_system_prompt: true
+    keep_tool_definitions: true
+    discard: "middle_history"
+
+handoff_protocol:
+  # When an agent reaches its memory limit and hands off
+  include_in_handoff:
+    - current_task_description
+    - last_summary_tag
+    - open_issues_list
+    - relevant_file_list
+  exclude_from_handoff:
+    - full_conversation_history
+    - intermediate_tool_results
