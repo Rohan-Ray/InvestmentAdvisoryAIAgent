@@ -8,7 +8,7 @@ import json
 import os
 import re
 from pathlib import Path
-from flask import Flask, render_template_string, jsonify
+from flask import Flask, render_template_string, jsonify, send_file
 
 app = Flask(__name__)
 VAULT_DIR = Path(__file__).parent
@@ -19,8 +19,6 @@ TEMPLATE = """
 <head>
 <meta charset="UTF-8">
 <title>Investment Knowledge Vault</title>
-<script src="https://unpkg.com/vis-network@9.1.9/dist/vis-network.min.js"></script>
-<link rel="stylesheet" href="https://unpkg.com/vis-network@9.1.9/dist/vis-network.min.css"/>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -38,7 +36,7 @@ TEMPLATE = """
   .tab.active { color: #cba6f7; border-bottom: 2px solid #cba6f7; }
   #content { flex: 1; padding: 2rem; overflow-y: auto; max-width: 860px; }
   #graph-view { flex: 1; display: none; }
-  #graph-canvas { width: 100%; height: 100%; }
+  #graph-iframe { width: 100%; height: 100%; border: none; }
   h1,h2,h3 { color: #cba6f7; }
   code { background: #313244; padding: 2px 6px; border-radius: 4px; color: #a6e3a1; }
   pre code { display: block; padding: 1rem; font-size: 0.85rem; }
@@ -77,7 +75,7 @@ TEMPLATE = """
       <p style="color:#6c7086">← Select a note from the sidebar</p>
     </div>
     <div id="graph-view">
-      <div id="graph-canvas"></div>
+      <iframe id="graph-iframe" src="/graph-view"></iframe>
     </div>
   </div>
 </div>
@@ -85,9 +83,8 @@ TEMPLATE = """
 <script>
 function showTab(tab) {
   document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (tab==='doc'&&i===0)||(tab==='graph'&&i===1)));
-  document.getElementById('content').style.display = tab==='doc' ? 'block' : 'none';
-  document.getElementById('graph-view').style.display = tab==='graph' ? 'flex' : 'none';
-  if (tab==='graph') loadGraph();
+  document.getElementById('content').style.display    = tab==='doc'   ? 'block' : 'none';
+  document.getElementById('graph-view').style.display = tab==='graph' ? 'flex'  : 'none';
 }
 
 function loadNote(name) {
@@ -95,34 +92,8 @@ function loadNote(name) {
     .then(r => r.json())
     .then(d => {
       document.getElementById('content').innerHTML = marked.parse(d.content);
+      showTab('doc');
     });
-}
-
-let graphLoaded = false;
-function loadGraph() {
-  if (graphLoaded) return;
-  fetch('/graph').then(r => r.json()).then(data => {
-    graphLoaded = true;
-    const nodes = new vis.DataSet(data.nodes.map(n => ({
-      id: n.id,
-      label: n.label,
-      color: n.type==='product' ? '#89b4fa' : n.type==='risk_level' ? '#f38ba8' :
-             n.type==='goal' ? '#a6e3a1' : n.type==='component' ? '#fab387' : '#cba6f7',
-      title: 'Tags: ' + (n.tags||[]).join(', '),
-      font: { color: '#cdd6f4' }
-    })));
-    const edges = new vis.DataSet(data.edges.map((e,i) => ({
-      id: i, from: e.source, to: e.target, label: e.relation,
-      color: { color: '#45475a' }, font: { color: '#6c7086', size: 9 },
-      arrows: 'to'
-    })));
-    new vis.Network(
-      document.getElementById('graph-canvas'),
-      { nodes, edges },
-      { background: '#1e1e2e', physics: { stabilization: { iterations: 100 } },
-        edges: { smooth: { type: 'continuous' } } }
-    );
-  });
 }
 </script>
 </body>
@@ -143,6 +114,10 @@ def get_note(name):
     # Strip YAML frontmatter
     content = re.sub(r'^---.*?---\s*', '', content, flags=re.DOTALL)
     return jsonify({"content": content})
+
+@app.route('/graph-view')
+def graph_view():
+    return send_file(VAULT_DIR / 'graph_view.html')
 
 @app.route('/graph')
 def get_graph():
