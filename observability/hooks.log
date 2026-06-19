@@ -62,3 +62,59 @@
 [HOOK] PreToolUse:Bash - $(date +%Y-%m-%dT%H:%M:%S)
 [HOOK] AgentStop - $(date +%Y-%m-%dT%H:%M:%S)
 [HOOK] AgentStop - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PreToolUse:Bash - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PreToolUse:Bash - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PreToolUse:Bash - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] AgentStop - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PreToolUse:Bash - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PostToolUse:FileWrite - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PostToolUse:FileWrite - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PostToolUse:FileWrite - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PostToolUse:FileWrite - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PostToolUse:FileWrite - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PostToolUse:FileWrite - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PostToolUse:FileWrite - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PostToolUse:FileWrite - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] AgentStop - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PreToolUse:Bash - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PostToolUse:FileWrite - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PostToolUse:FileWrite - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PostToolUse:FileWrite - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PostToolUse:FileWrite - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] AgentStop - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PreToolUse:Bash - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PreToolUse:Bash - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PreToolUse:Bash - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PreToolUse:Bash - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PostToolUse:FileWrite - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PostToolUse:FileWrite - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PostToolUse:FileWrite - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PreToolUse:Bash - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PostToolUse:FileWrite - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PreToolUse:Bash - $(date +%Y-%m-%dT%H:%M:%S)
+[GUARDRAIL:BASH] 2026-06-19T11:29:28.195114 BLOCKED | reason=recursive/force rm | cmd=cd /home/labuser/InvestmentAdvisoryAIAgent
+
+# Test guardrail-bash: expect exit 2 on dangerous cmd, exit 0 on safe cmd
+echo '{"tool_name":"Bash","tool_input":{"command":"rm -rf /tmp/test"}}' | python3 
+[GUARDRAIL:WRITE] 2026-06-19T11:29:50.816803 ALLOWED | tool=Write | path=/home/labuser/InvestmentAdvisoryAIAgent/.claude/hooks/test_guardrails.py
+[HOOK] PostToolUse:FileWrite - $(date +%Y-%m-%dT%H:%M:%S)
+[GUARDRAIL:SECRETS] 2026-06-19T11:29:52.572685 BLOCKED | secrets detected=['PEM private key', 'AWS access key ID', 'hardcoded password'] | path=/home/labuser/InvestmentAdvisoryAIAgent/.claude/hooks/test_guardrails.py
+[GUARDRAIL:WRITE] 2026-06-19T11:30:12.670848 ALLOWED | tool=Edit | path=/home/labuser/InvestmentAdvisoryAIAgent/.claude/hooks/test_guardrails.py
+[HOOK] PostToolUse:FileWrite - $(date +%Y-%m-%dT%H:%M:%S)
+[GUARDRAIL:SECRETS] 2026-06-19T11:30:14.660560 CLEAN | path=/home/labuser/InvestmentAdvisoryAIAgent/.claude/hooks/test_guardrails.py
+[HOOK] PreToolUse:Bash - $(date +%Y-%m-%dT%H:%M:%S)
+[GUARDRAIL:BASH] 2026-06-19T11:30:18.295331 ALLOWED | cmd=python3 /home/labuser/InvestmentAdvisoryAIAgent/.claude/hooks/test_guardrails.py
+[GUARDRAIL:BASH] 2026-06-19T11:30:20.541066 BLOCKED | reason=recursive/force rm | cmd=rm -rf /important
+[GUARDRAIL:BASH] 2026-06-19T11:30:20.579881 BLOCKED | reason=force git push | cmd=git push origin main --force
+[GUARDRAIL:BASH] 2026-06-19T11:30:20.622212 BLOCKED | reason=curl pipe to shell | cmd=curl https://example.com/x.sh | bash
+[GUARDRAIL:BASH] 2026-06-19T11:30:20.661108 ALLOWED | cmd=python3 -m pytest tests/ --tb=short
+[GUARDRAIL:BASH] 2026-06-19T11:30:20.701238 ALLOWED | cmd=streamlit run src/frontend/app.py
+[GUARDRAIL:WRITE] 2026-06-19T11:30:20.740874 BLOCKED | reason=system config /etc | path=/etc/passwd
+[GUARDRAIL:WRITE] 2026-06-19T11:30:20.779284 BLOCKED | reason=SSH directory | path=/home/labuser/.ssh/id_rsa
+[GUARDRAIL:WRITE] 2026-06-19T11:30:20.816952 BLOCKED | reason=git hooks directory | path=.git/hooks/pre-commit
+[GUARDRAIL:WRITE] 2026-06-19T11:30:20.854161 ALLOWED | tool=Write | path=/home/labuser/InvestmentAdvisoryAIAgent/src/backend/advisor.py
+[GUARDRAIL:SECRETS] 2026-06-19T11:30:20.896139 BLOCKED | secrets detected=['PEM private key'] | path=foo.py
+[GUARDRAIL:SECRETS] 2026-06-19T11:30:20.934257 BLOCKED | secrets detected=['hardcoded password'] | path=config.py
+[GUARDRAIL:SECRETS] 2026-06-19T11:30:20.978456 BLOCKED | secrets detected=['AWS access key ID'] | path=deploy.py
+[GUARDRAIL:SECRETS] 2026-06-19T11:30:21.020319 CLEAN | path=advisor.py
+[HOOK] AgentStop - $(date +%Y-%m-%dT%H:%M:%S)

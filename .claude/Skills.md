@@ -8,11 +8,25 @@ Rule-based logic for investment category recommendations with educational discla
 
 ## Available Skills
 
-### `/run`
+Skill files live in `.claude/skills/`. Project-level skills below; global skills (`/code-review`, `/verify`, `/deep-research`, `/security-review`, `/simplify`) are provided by the Claude Code harness.
+
+### `/run` → `.claude/skills/run/SKILL.md`
 Launch the Streamlit application.
 - Entry: `streamlit run src/frontend/app.py`
 - Port: 8501
 - Env: `INVESTMENT_APP_ENV=development`
+
+### `/run-tests` → `.claude/skills/run-tests/SKILL.md`
+Run the full pytest suite with short tracebacks.
+- Used by: `backend-agent`, `p3-triage-agent`
+
+### `/context-trim` → `.claude/skills/context-trim/SKILL.md`
+Shared trimming policy for all sub-agents (≤150-word digest, keep 10 prompts, tag summary).
+- Used by: all three agents
+
+### `/triage` → `.claude/skills/triage/SKILL.md`
+Full P3 cross-cutting review: quality gates, security checklist, performance checklist, report generation.
+- Used by: `p3-triage-agent`
 
 ### `/code-review`
 Run code quality review on changed files.

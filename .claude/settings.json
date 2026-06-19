@@ -7,6 +7,19 @@
           {
             "type": "command",
             "command": "echo '[HOOK] PreToolUse:Bash - $(date +%Y-%m-%dT%H:%M:%S)' >> /home/labuser/InvestmentAdvisoryAIAgent/observability/hooks.log"
+          },
+          {
+            "type": "command",
+            "command": "python3 /home/labuser/InvestmentAdvisoryAIAgent/.claude/hooks/guardrail-bash.py"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /home/labuser/InvestmentAdvisoryAIAgent/.claude/hooks/guardrail-write.py"
           }
         ]
       }
@@ -18,6 +31,10 @@
           {
             "type": "command",
             "command": "echo '[HOOK] PostToolUse:FileWrite - $(date +%Y-%m-%dT%H:%M:%S)' >> /home/labuser/InvestmentAdvisoryAIAgent/observability/hooks.log"
+          },
+          {
+            "type": "command",
+            "command": "python3 /home/labuser/InvestmentAdvisoryAIAgent/.claude/hooks/guardrail-secrets.py"
           }
         ]
       }

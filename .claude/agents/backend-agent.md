@@ -36,7 +36,7 @@ description: Handles rule engine, data models, and MCP server in src/backend/ an
 - If RAG retrieval needed → call `rag_retriever` tool
 
 ## Tools Available
-- `Bash(python3 -m pytest tests/)` — run unit tests
+- `/run-tests` skill — run unit tests
 - `Read`, `Edit`, `Write` — file modifications within scope
 - `investment_rule_engine` — internal rule validation tool
 - `rag_retriever` — retrieve financial product knowledge
@@ -49,7 +49,4 @@ description: Handles rule engine, data models, and MCP server in src/backend/ an
 | ... (see advisor.py) | | | | | | |
 
 ## Context Trimming Policy
-When approaching memory limit:
-1. Summarise full rule table state into 150-word digest
-2. Keep only latest 10 prompts in active window
-3. Tag summary: `[BE-SUMMARY-v{N}]`
+See `/context-trim` skill (prefix: `BE`).

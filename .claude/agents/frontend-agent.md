@@ -33,12 +33,9 @@ description: Handles all Streamlit UI work in src/frontend/. Invoked for layout,
 - If security concern found → escalate to `p3-triage-agent`
 
 ## Tools Available
-- `Bash(streamlit run src/frontend/app.py)` — launch app
+- `/run` skill — launch app
 - `Read`, `Edit`, `Write` — file modifications within scope
 - `rag_retriever` — look up investment product descriptions from knowledge vault
 
 ## Context Trimming Policy
-When approaching memory limit:
-1. Summarise all prior chat into 150-word digest
-2. Keep only latest 10 prompts in active window
-3. Tag summary: `[FE-SUMMARY-v{N}]`
+See `/context-trim` skill (prefix: `FE`).
