@@ -4,7 +4,7 @@
   "uid": "invest-advisory-v1",
   "schemaVersion": 38,
   "version": 1,
-  "refresh": "10s",
+  "refresh": "5s",
   "time": { "from": "now-1h", "to": "now" },
   "panels": [
     {
@@ -56,26 +56,85 @@
       ]
     },
     {
-      "id": 5,
-      "type": "timeseries",
-      "title": "MCP Tool Call Rate",
-      "gridPos": { "x": 0, "y": 10, "w": 16, "h": 4 },
+      "id": 7,
+      "type": "stat",
+      "title": "Claude Input Tokens (cumulative)",
+      "gridPos": { "x": 0, "y": 10, "w": 5, "h": 4 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": { "steps": [{ "color": "blue", "value": null }] }
+        }
+      },
       "targets": [
         {
-          "expr": "rate(mcp_tool_calls_total[1m])",
-          "legendFormat": "{{tool}}"
+          "expr": "sum(claude_input_tokens_total)",
+          "legendFormat": "Input Tokens"
         }
       ]
     },
     {
-      "id": 6,
-      "type": "logs",
-      "title": "Application Logs",
-      "gridPos": { "x": 0, "y": 14, "w": 16, "h": 6 },
+      "id": 8,
+      "type": "stat",
+      "title": "Claude Output Tokens (cumulative)",
+      "gridPos": { "x": 5, "y": 10, "w": 5, "h": 4 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": { "steps": [{ "color": "purple", "value": null }] }
+        }
+      },
       "targets": [
         {
-          "expr": "{service_name=\"investment-advisory-agent\"}",
-          "legendFormat": ""
+          "expr": "sum(claude_output_tokens_total)",
+          "legendFormat": "Output Tokens"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "stat",
+      "title": "Claude API Cost (cumulative USD)",
+      "gridPos": { "x": 10, "y": 10, "w": 6, "h": 4 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 6,
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.01 },
+              { "color": "red", "value": 0.10 }
+            ]
+          }
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(claude_cost_usd_total)",
+          "legendFormat": "Cost (USD)"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Claude Token Usage Over Time",
+      "gridPos": { "x": 0, "y": 14, "w": 16, "h": 5 },
+      "fieldConfig": {
+        "defaults": { "unit": "short" }
+      },
+      "targets": [
+        {
+          "expr": "claude_input_tokens_total",
+          "legendFormat": "Input Tokens — {{model}}"
+        },
+        {
+          "expr": "claude_output_tokens_total",
+          "legendFormat": "Output Tokens — {{model}}"
         }
       ]
     }

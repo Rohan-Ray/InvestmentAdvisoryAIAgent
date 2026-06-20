@@ -1,5 +1,10 @@
 {
   "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest", "--headless"],
+      "description": "Playwright browser automation MCP — navigate, click, screenshot web pages."
+    },
     "investment-advisory": {
       "command": "python3",
       "args": ["mcp/server.py"],

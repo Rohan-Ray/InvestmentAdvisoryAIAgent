@@ -10,6 +10,12 @@ Rule-based logic for investment category recommendations with educational discla
 
 Skill files live in `.claude/skills/`. Project-level skills below; global skills (`/code-review`, `/verify`, `/deep-research`, `/security-review`, `/simplify`) are provided by the Claude Code harness.
 
+### `/screenshot` → `.claude/skills/screenshot/SKILL.md`
+Capture screenshots of all running app pages using Playwright MCP.
+- Requires: `playwright` MCP server (in `mcp/claude_mcp_config.json`)
+- Pages: Streamlit advisory app (:8501), Prometheus metrics (:8502), Knowledge Vault (:8503)
+- Output: `screenshots/` at project root (5 PNG files)
+
 ### `/run` → `.claude/skills/run/SKILL.md`
 Launch the Streamlit application.
 - Entry: `streamlit run src/frontend/app.py`
@@ -77,6 +83,7 @@ Simplify and clean up changed code.
 ### External (MCP)
 - `filesystem` — read/write project files
 - `investment-mcp` — custom MCP server at `mcp/server.py`
+- `playwright` — browser automation: navigate, click, screenshot; headless mode; config in `mcp/claude_mcp_config.json`
 
 ---
 

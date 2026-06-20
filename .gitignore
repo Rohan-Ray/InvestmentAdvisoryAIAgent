@@ -1,0 +1,30 @@
+# Secrets / environment
+.env
+*.key
+*.pem
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# Node
+node_modules/
+
+# Screenshots / captures (local artifacts)
+screenshots/
+
+# Local run-only tooling (vendored Grafana install, etc.)
+tools/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+
+# Claude local settings
+.claude/settings.local.json

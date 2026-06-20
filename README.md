@@ -190,8 +190,6 @@ Dashboard panels:
 - Recommendation latency p95 (timeseries)
 - Breakdown by risk profile (pie chart)
 - Breakdown by goal horizon (pie chart)
-- MCP tool call rate
-- Application logs
 
 ---
 
@@ -212,6 +210,22 @@ cat mcp/claude_mcp_config.json
 ---
 
 ### Run All Services at Once
+
+#### Windows (recommended)
+
+Run the one-time setup script to download Prometheus and Grafana into `tools/`:
+
+```powershell
+.\setup.ps1
+```
+
+Then launch all 5 services in separate windows:
+
+```powershell
+.\start-all.ps1
+```
+
+#### Linux / macOS (manual)
 
 ```bash
 # Terminal 1 — Streamlit App
