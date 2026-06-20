@@ -89,6 +89,16 @@ pip install -r requirements.txt
 pip install flask                   # required for Knowledge Vault viewer
 ```
 
+### 2. Configure your API key
+
+The MCP server and agent features require an Anthropic API key. Create a `.env` file in the project root:
+
+```bash
+ANTHROPIC_API_KEY=your-key-here
+```
+
+> The `.env` file is gitignored and must **never** be committed. Get a key from https://console.anthropic.com/.
+
 ---
 
 ## Running Each Service
@@ -136,6 +146,21 @@ python3 observability/metrics_exporter.py
 Metrics endpoint: **http://localhost:8502/metrics**
 
 #### Step 2 — Start Prometheus
+
+Install Prometheus first if it isn't on your PATH (Linux/macOS):
+
+```bash
+# macOS
+brew install prometheus
+
+# Linux (download the OSS release)
+curl -sL https://github.com/prometheus/prometheus/releases/download/v2.54.1/prometheus-2.54.1.linux-amd64.tar.gz \
+  -o /tmp/prometheus.tar.gz
+tar -xzf /tmp/prometheus.tar.gz -C /tmp
+# binary at /tmp/prometheus-2.54.1.linux-amd64/prometheus
+```
+
+> On Windows, `.\setup.ps1` downloads Prometheus into `tools/` automatically.
 
 Scrapes the metrics exporter every 5 seconds:
 
@@ -319,6 +344,25 @@ cat mcp/claude_mcp_config.json
 ---
 
 ## Load Testing
+
+Install k6 first ([full install docs](https://grafana.com/docs/k6/latest/set-up/install-k6/)):
+
+```bash
+# macOS
+brew install k6
+
+# Windows
+winget install k6 --source winget
+
+# Linux (Debian/Ubuntu)
+sudo gpg -k && sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg \
+  --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" \
+  | sudo tee /etc/apt/sources.list.d/k6.list
+sudo apt-get update && sudo apt-get install k6
+```
+
+Then run the load test:
 
 ```bash
 k6 run load-testing/k6_script.js
