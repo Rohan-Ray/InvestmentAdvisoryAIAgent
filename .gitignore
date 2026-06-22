@@ -28,3 +28,6 @@ Thumbs.db
 
 # Claude local settings
 .claude/settings.local.json
+
+# Observability logs (local only, written by hooks)
+observability/hooks.log
