@@ -6,11 +6,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "mkdir -p /home/user/InvestmentAdvisoryAIAgent/observability && echo '[HOOK] PreToolUse:Bash - $(date +%Y-%m-%dT%H:%M:%S)' >> /home/user/InvestmentAdvisoryAIAgent/observability/hooks.log"
+            "command": "mkdir -p $CLAUDE_PROJECT_DIR/observability && echo '[HOOK] PreToolUse:Bash - $(date +%Y-%m-%dT%H:%M:%S)' >> $CLAUDE_PROJECT_DIR/observability/hooks.log"
           },
           {
             "type": "command",
-            "command": "python3 /home/user/InvestmentAdvisoryAIAgent/.claude/hooks/guardrail-bash.py"
+            "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/guardrail-bash.py"
           }
         ]
       },
@@ -19,7 +19,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 /home/user/InvestmentAdvisoryAIAgent/.claude/hooks/guardrail-write.py"
+            "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/guardrail-write.py"
           }
         ]
       }
@@ -30,11 +30,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "mkdir -p /home/user/InvestmentAdvisoryAIAgent/observability && echo '[HOOK] PostToolUse:FileWrite - $(date +%Y-%m-%dT%H:%M:%S)' >> /home/user/InvestmentAdvisoryAIAgent/observability/hooks.log"
+            "command": "mkdir -p $CLAUDE_PROJECT_DIR/observability && echo '[HOOK] PostToolUse:FileWrite - $(date +%Y-%m-%dT%H:%M:%S)' >> $CLAUDE_PROJECT_DIR/observability/hooks.log"
           },
           {
             "type": "command",
-            "command": "python3 /home/user/InvestmentAdvisoryAIAgent/.claude/hooks/guardrail-secrets.py"
+            "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/guardrail-secrets.py"
           }
         ]
       }
@@ -44,7 +44,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "mkdir -p /home/user/InvestmentAdvisoryAIAgent/observability && echo '[HOOK] AgentStop - $(date +%Y-%m-%dT%H:%M:%S)' >> /home/user/InvestmentAdvisoryAIAgent/observability/hooks.log"
+            "command": "mkdir -p $CLAUDE_PROJECT_DIR/observability && echo '[HOOK] AgentStop - $(date +%Y-%m-%dT%H:%M:%S)' >> $CLAUDE_PROJECT_DIR/observability/hooks.log"
           }
         ]
       }
