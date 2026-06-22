@@ -125,3 +125,7 @@ echo '{"tool_name":"Bash","tool_input":{"command":"rm -rf /tmp/test"}}' | python
 [HOOK] AgentStop - $(date +%Y-%m-%dT%H:%M:%S)
 [HOOK] PreToolUse:Bash - $(date +%Y-%m-%dT%H:%M:%S)
 [HOOK] PreToolUse:Bash - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] AgentStop - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] AgentStop - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PreToolUse:Bash - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PreToolUse:Bash - $(date +%Y-%m-%dT%H:%M:%S)
