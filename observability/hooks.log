@@ -118,3 +118,8 @@ echo '{"tool_name":"Bash","tool_input":{"command":"rm -rf /tmp/test"}}' | python
 [GUARDRAIL:SECRETS] 2026-06-19T11:30:20.978456 BLOCKED | secrets detected=['AWS access key ID'] | path=deploy.py
 [GUARDRAIL:SECRETS] 2026-06-19T11:30:21.020319 CLEAN | path=advisor.py
 [HOOK] AgentStop - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PreToolUse:Bash - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PreToolUse:Bash - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] AgentStop - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PreToolUse:Bash - $(date +%Y-%m-%dT%H:%M:%S)
+[HOOK] PreToolUse:Bash - $(date +%Y-%m-%dT%H:%M:%S)
